@@ -98,6 +98,15 @@ class VCFWriter extends IndexingVariantContextWriter {
         this.allowMissingFieldsInHeader = allowMissingFieldsInHeader;
         this.writeFullFormatField = writeFullFormatField;
     }
+
+    public VCFWriter(final File location, final OutputStream output, final SAMSequenceDictionary refDict, VCFHeader header,
+                     final boolean enableOnTheFlyIndexing,
+                     final boolean doNotWriteGenotypes, final boolean allowMissingFieldsInHeader,
+                     final boolean writeFullFormatField) {
+        this(location, output, refDict, enableOnTheFlyIndexing, doNotWriteGenotypes,
+             allowMissingFieldsInHeader, writeFullFormatField);
+        this.vcfEncoder = new VCFEncoder(header, allowMissingFieldsInHeader, writeFullFormatField);
+    }
     // --------------------------------------------------------------------------------
     //
     // VCFWriter interface functions

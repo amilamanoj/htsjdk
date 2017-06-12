@@ -35,6 +35,7 @@ import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.index.IndexCreator;
 import htsjdk.tribble.index.tabix.TabixFormat;
 import htsjdk.tribble.index.tabix.TabixIndexCreator;
+import htsjdk.variant.vcf.VCFHeader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -125,6 +126,7 @@ public class VariantContextWriterBuilder {
     private int bufferSize = Defaults.BUFFER_SIZE;
     private boolean createMD5 = Defaults.CREATE_MD5;
     protected EnumSet<Options> options = DEFAULT_OPTIONS.clone();
+    protected VCFHeader mHeader = null;
 
     /**
      * Default constructor.  Adds <code>USE_ASYNC_IO</code> to the Options if it is present in Defaults.
@@ -199,6 +201,11 @@ public class VariantContextWriterBuilder {
         this.outStream = outStream;
         this.outFile = null;
         this.outType = OutputType.VCF_STREAM;
+        return this;
+    }
+
+    public VariantContextWriterBuilder setHeader(VCFHeader header) {
+        this.mHeader = header;
         return this;
     }
 
@@ -506,11 +513,19 @@ public class VariantContextWriterBuilder {
 
     private VariantContextWriter createVCFWriter(final File writerFile, final OutputStream writerStream) {
         if (idxCreator == null) {
-            return new VCFWriter(writerFile, writerStream, refDict,
-                    options.contains(Options.INDEX_ON_THE_FLY),
-                    options.contains(Options.DO_NOT_WRITE_GENOTYPES),
-                    options.contains(Options.ALLOW_MISSING_FIELDS_IN_HEADER),
-                    options.contains(Options.WRITE_FULL_FORMAT_FIELD));
+            if (options.contains(Options.ALLOW_BLOCKS_WITHOUT_HEADER)) {
+                return new VCFWriter(writerFile, writerStream, refDict, mHeader,
+                                     options.contains(Options.INDEX_ON_THE_FLY),
+                                     options.contains(Options.DO_NOT_WRITE_GENOTYPES),
+                                     options.contains(Options.ALLOW_MISSING_FIELDS_IN_HEADER),
+                                     options.contains(Options.WRITE_FULL_FORMAT_FIELD));
+            } else {
+                return new VCFWriter(writerFile, writerStream, refDict,
+                                     options.contains(Options.INDEX_ON_THE_FLY),
+                                     options.contains(Options.DO_NOT_WRITE_GENOTYPES),
+                                     options.contains(Options.ALLOW_MISSING_FIELDS_IN_HEADER),
+                                     options.contains(Options.WRITE_FULL_FORMAT_FIELD));
+            }
         }
         else {
             return new VCFWriter(writerFile, writerStream, refDict, idxCreator,
